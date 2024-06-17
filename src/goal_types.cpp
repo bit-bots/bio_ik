@@ -228,6 +228,36 @@ double TouchGoal::evaluate(const GoalContext& context) const
 }
 #endif
 
+void GoThroughGoal::describe(bio_ik::GoalContext &context) const {
+    Goal::describe(context);
+    link_count_ = 0;
+    for (auto &link_name : context.getRobotModel().getLinkModelNames())
+    {
+        context.addLink(link_name);
+        link_count_++;
+    }
+}
+
+double GoThroughGoal::evaluate(const bio_ik::GoalContext &context) const {
+    double min_distance = FLT_MAX;
+    for (size_t i = 0; i < link_count_ - 1; ++i)
+    {
+        auto &frame = context.getLinkFrame(i);
+        auto &next_frame = context.getLinkFrame(i + 1);
+        tf2::Vector3 projected_point;
+        if (frame.pos != next_frame.pos) {
+            double t = (point_ - frame.pos).dot(next_frame.pos - frame.pos) / next_frame.pos.distance2(frame.pos);
+            double clipped_t = std::clamp(t, 0.0, 1.0);
+            projected_point = frame.pos + clipped_t * (next_frame.pos - frame.pos);
+        } else {
+            projected_point = frame.pos;
+        }
+        double distance = point_.distance2(projected_point);
+        min_distance = std::min(min_distance, distance);
+    }
+    return min_distance;
+}
+
 void BalanceGoal::describe(GoalContext& context) const
 {
     Goal::describe(context);
