@@ -55,7 +55,7 @@ else()
     set(FANN_INCLUDE_DIRS)
 endif()
 
-option(USE_CPPOPTLIB "Include gradient-based solvers from CppNumericalSolvers (bio_ik also provides its own solver)" OFF)
+option(USE_CPPOPTLIB "Include gradient-based solvers from CppNumericalSolvers (bio_ik also provides its own solver)" ON)
 if(USE_CPPOPTLIB)
     find_path(CPPOPTLIB_INCLUDE_DIRS
         NAMES cppoptlib/solver/bfgssolver.h
