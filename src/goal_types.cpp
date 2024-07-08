@@ -228,7 +228,7 @@ double TouchGoal::evaluate(const GoalContext& context) const
 }
 #endif
 
-void GoThroughGoal::describe(bio_ik::GoalContext &context) const {
+void RCMGoal::describe(bio_ik::GoalContext &context) const {
     Goal::describe(context);
     link_count_ = 0;
     for (auto &link_name : context.getRobotModel().getLinkModelNames())
@@ -238,7 +238,7 @@ void GoThroughGoal::describe(bio_ik::GoalContext &context) const {
     }
 }
 
-double GoThroughGoal::evaluate(const bio_ik::GoalContext &context) const {
+double RCMGoal::evaluate(const bio_ik::GoalContext &context) const {
     double min_distance = FLT_MAX;
     for (size_t i = 0; i < link_count_ - 1; ++i)
     {
