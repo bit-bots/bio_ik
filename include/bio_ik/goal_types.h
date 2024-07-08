@@ -298,12 +298,12 @@ public:
     }
 };
 
-class GoThroughGoal : public Goal
+class RCMGoal : public Goal
 {
     tf2::Vector3 point_;
     mutable size_t link_count_ = 0;
 public:
-    GoThroughGoal(const tf2::Vector3 &point, double weight = 1.0) {
+    RCMGoal(const tf2::Vector3 &point, double weight = 1.0) {
         weight_ = weight;
         point_ = point;
     }
