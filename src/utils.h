@@ -472,4 +472,19 @@ template <class T, size_t A> struct aligned_allocator : public std::allocator<T>
 template <class T> struct aligned_vector : std::vector<T, aligned_allocator<T, 32>>
 {
 };
+
+Eigen::Vector<double, 6> log6(const Eigen::Isometry3d &in) {
+    Eigen::Vector<double, 6> out;
+    Eigen::Matrix3d R = in.rotation();
+    double cos_theta = 1.0 / 2 * (R.trace() - 1);
+    double sin_theta = std::sqrt(1 - std::pow(cos_theta, 2));
+    double theta = std::acos(cos_theta);
+    Eigen::Vector3d omega = theta / (2 * sin_theta) * Eigen::Vector3d(R(3, 2) - R(2, 3), R(1, 3) - R(3, 1), R(2, 1) - R(1, 2));
+    Eigen::Matrix3d omega_hat = theta / (2 * sin_theta) * (R - R.transpose());
+    Eigen::Matrix3d V_inv = Eigen::Matrix3d::Identity() - 1.0/2 * omega_hat + (1 - theta * std::cos(theta/2) / (2 * std::sin(theta / 2))) / std::pow(theta, 2) * omega_hat.square();
+    Eigen::Vector3d t_dash = V_inv * in.translation();
+    out.topRows(3) = t_dash;
+    out.bottomRows(3) = omega;
+    return out;
+}
 }

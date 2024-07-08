@@ -33,6 +33,7 @@
  *********************************************************************/
 
 #include "ik_base.h"
+#include "utils.h"
 
 #ifdef ENABLE_CPP_OPTLIB
 #include "cppoptlib/solver/lbfgssolver.h"
@@ -574,6 +575,65 @@ template <int memetic> struct IKEvolution2 : IKBase
                             }
                         }
                     }
+                } else if (memetic == 'p') {
+                    // PivotIK optimization
+                    // calculate J_ee, r_ee, J_rcm, r_rcm
+                    tf2::Transform target;
+                    target.setOrigin({1.0, 0.0, 0.0});
+                    Eigen::Vector3d p_trocar;
+                    Eigen::MatrixXd J_ee;
+                    model.computeJacobian(problem.active_variables, J_ee);
+                    model.computeApproximateMutations(1, population[0].genes, phenotypes2);
+                    bio_ik::Frame actual = phenotypes2[0][0];
+                    bio_ik::Frame desired(target.getOrigin(), target.getRotation());
+                    bio_ik::Frame desired_inv;
+                    invert(desired, desired_inv);
+                    bio_ik::Frame diff;
+                    concat(actual, desired_inv, diff);
+                    Eigen::Isometry3d diff_iso = Eigen::Isometry3d::Identity();
+                    diff_iso.translate(Eigen::Vector3d(diff.getPosition().x(), diff.getPosition().y(), diff.getPosition().z()));
+                    Eigen::Quaterniond q(diff.getOrientation().w(), diff.getOrientation().x(), diff.getOrientation().y(), diff.getOrientation().z());
+                    diff_iso.rotate(q);
+                    Eigen::Vector<double, 6> r_ee = log6(diff_iso);
+
+                    const int num_vars = 6;
+                    Eigen::Vector3d p_pre = {
+                            model.getJointVariableFrame(num_vars - 1).pos.x(),
+                            model.getJointVariableFrame(num_vars - 1).pos.y(),
+                            model.getJointVariableFrame(num_vars - 1).pos.z()
+                    };
+                    Eigen::Vector3d p_post = {
+                            model.getJointVariableFrame(num_vars).pos.x(),
+                            model.getJointVariableFrame(num_vars).pos.y(),
+                            model.getJointVariableFrame(num_vars).pos.z(),
+                    };
+                    Eigen::Matrix<double, 6, num_vars> J_pre;
+                    std::vector<size_t> variables;
+                    std::copy(problem.active_variables.begin(), problem.active_variables.begin() + num_vars, variables.begin());
+                    model.computeJacobian(variables, J_pre);
+                    Eigen::Matrix<double, 3, num_vars> J_pre_ang = J_pre.bottomRows(3);
+                    Eigen::Matrix<double, 6, num_vars> J_post = J_pre;
+                    J_post.topRows(3) = J_pre.topRows(3) + J_pre_ang.cross(p_post - p_pre);
+
+                    Eigen::Vector3d p_s = p_post - p_pre;
+                    Eigen::Vector3d p_s_hat = p_s.normalized();
+                    Eigen::Matrix<double, 3, num_vars> dps = 1.0 / p_s.norm() * (Eigen::Matrix3d::Identity() - p_s_hat * p_s_hat.transpose()) * (J_post.topRows(3) - J_pre.topRows(3));
+                    Eigen::Vector3d p_r = p_trocar - p_pre;
+                    Eigen::Vector3d p_rcm = p_pre + p_r.transpose() * p_s_hat * p_s_hat;
+                    Eigen::Vector3d p_e = p_trocar - p_rcm;
+                    double r_rcm = p_e.squaredNorm();
+                    Eigen::Matrix<double, 3, num_vars> J_rcm = p_e.transpose() * ((Eigen::Matrix3d::Identity() - p_s_hat * p_s_hat.transpose()) * J_pre +
+                            (p_s_hat * p_r.transpose() + p_r.transpose() * p_s_hat * Eigen::Matrix3d::Identity()) * dps);
+
+                    Eigen::MatrixXd J_ee_inv = J_ee.completeOrthogonalDecomposition().pseudoInverse();
+                    Eigen::MatrixXd J_rcm_inv = J_rcm.completeOrthogonalDecomposition().pseudoInverse();
+                    // get gradient
+                    double K_ee = 100.0;
+                    double K_rcm = 1.0;
+                    Eigen::VectorXd grad = J_ee_inv * K_ee * r_ee + (Eigen::Matrix<double, 6, 6>::Identity() - J_ee_inv * J_ee) * J_rcm_inv * K_rcm * r_rcm;
+                    // check if individual + gradient is fitter than individual before
+
+                    // if yes: replace individual
                 }
 
 #ifdef ENABLE_CPP_OPTLIB
