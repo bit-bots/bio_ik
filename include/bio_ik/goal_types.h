@@ -597,6 +597,44 @@ public:
     }
 };
 
+static double groove_loss(double x, double t, double d, double c, double f, double g) {
+    return -exp((-pow(x - t, d)) / (2.0 * pow(c, 2))) + f * pow(x - t, g);
+}
+
+
+class ScanGoal : public LinkGoalBase
+{
+    double optimal_distance = 0.01;
+    double optimal_angle = 0;
+    tf2::Vector3 axis{0, 0, 1};
+    Frame target_pose;
+public:
+    ScanGoal(const std::string &link_name, const tf2::Vector3 &position, const tf2::Quaternion &orientation, double weight = 1.0)
+    : LinkGoalBase(link_name, weight)
+    , target_pose(position, orientation.normalized()) {}
+    virtual double evaluate(const GoalContext &context) const {
+        auto &fb = context.getLinkFrame();
+        double distance = target_pose.getPosition().distance(fb.getPosition());
+        double c_distance = std::exp(-std::pow(distance - optimal_distance, 2));
+        //double c_distance = groove_loss(distance, optimal_distance, 2,  0.1, 10, 4);
+        tf2::Vector3 target_normal;
+        quat_mul_vec(target_pose.getOrientation(), axis, target_normal);
+        double angle = target_normal.angle(target_pose.getPosition() - fb.getPosition());
+        double c_angle = std::exp(-std::pow(angle - optimal_angle, 2));
+        //double c_angle = groove_loss(angle, optimal_angle, 2, 0.1, 10, 4);
+        tf2::Vector3 sensor_normal;
+        quat_mul_vec(fb.getOrientation(), axis, sensor_normal);
+        double beta = sensor_normal.angle(target_pose.getPosition() - fb.getPosition());
+        double c_center = std::exp(-std::pow(beta, 2));
+        //double c_center = groove_loss(beta, 0, 2, 0.1, 10, 4);
+        //return 10 * c_distance + c_angle + 5 * c_center;
+        //return (groove_loss(distance, optimal_distance, 2, 1, 5, 4) +
+        //        groove_loss(angle, optimal_angle, 2, 1, 5, 4) +
+        //        groove_loss(beta, 0, 2, 1, 5, 4)) + 3;
+        return 1 - (c_distance + c_angle + c_center) / 3.0;
+    }
+};
+
 class DirectionGoal : public LinkGoalBase
 {
     tf2::Vector3 axis;
