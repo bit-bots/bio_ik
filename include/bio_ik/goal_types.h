@@ -311,6 +311,21 @@ public:
     virtual double evaluate(const GoalContext &context) const;
 };
 
+class RCMGoal3 : public Goal
+{
+    tf2::Vector3 point_;
+    mutable size_t link_count_ = 0;
+    std::string link_name_;
+public:
+    RCMGoal3(const std::string &link_name, const tf2::Vector3 &point, double weight = 1.0) {
+        weight_ = weight;
+        point_ = point;
+        link_name_ = link_name;
+    }
+    virtual void describe(GoalContext &context) const;
+    virtual double evaluate(const GoalContext &context) const;
+};
+
 #if (MOVEIT_FCL_VERSION < FCL_VERSION_CHECK(0, 6, 0))
 class TouchGoal : public LinkGoalBase
 {
