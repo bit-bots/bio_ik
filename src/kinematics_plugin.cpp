@@ -516,6 +516,9 @@ struct BioIKKinematicsPlugin : kinematics::KinematicsBase {
     }
 
     while (std::chrono::system_clock::now() < problem.timeout) {
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
       {
         BLOCKPROFILER("ik init");
         ik->initialize(problem);
@@ -526,6 +529,8 @@ struct BioIKKinematicsPlugin : kinematics::KinematicsBase {
         BLOCKPROFILER("ik_solve");
         ik->solve();
       }
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << std::endl;
 
       // get solution
       state = ik->getSolution();
