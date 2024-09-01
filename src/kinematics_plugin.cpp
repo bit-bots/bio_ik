@@ -153,6 +153,7 @@ struct BioIKKinematicsPlugin : kinematics::KinematicsBase {
   mutable std::vector<const bio_ik::Goal *> all_goals;
 
   IKParams ikparams;
+  bool keep_seed{false};
 
   mutable Problem problem;
 
@@ -228,6 +229,8 @@ struct BioIKKinematicsPlugin : kinematics::KinematicsBase {
     getRosParam("memetic_evolution_gens", ikparams.memetic_evolution_gens, 8);
     getRosParam("memetic_opt_gens", ikparams.memetic_opt_gens, 8);
     getRosParam("elite_count2", ikparams.elite_count2, 1);
+
+    getRosParam("keep_seed", keep_seed, false);
 
     temp_state.reset(new moveit::core::RobotState(robot_model_));
 
@@ -604,8 +607,10 @@ struct BioIKKinematicsPlugin : kinematics::KinematicsBase {
         if (error_code.val == error_code.SUCCESS) {
           return true;
         } else {
-          robot_model_->getVariableRandomPositions(temp_state->getRandomNumberGenerator(), state);
-          problem.initial_guess = state;
+          if (!keep_seed) {
+              robot_model_->getVariableRandomPositions(temp_state->getRandomNumberGenerator(), state);
+              problem.initial_guess = state;
+          }
         }
       } else {
         // return success
