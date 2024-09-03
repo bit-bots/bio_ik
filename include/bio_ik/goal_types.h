@@ -647,7 +647,8 @@ public:
         quat_mul_vec(fb.getOrientation(), axis, sensor_normal);
         double beta = sensor_normal.angle(target_pose.getPosition() - fb.getPosition());
         double c_center = swamp_loss(beta, beta - beta_wall_angle, beta + beta_wall_angle, 1.0, 0.1, 8);
-        return c_distance + c_angle + c_center + 3;
+        double loss = (c_distance + c_angle + c_center) / 3.0;
+        return loss;
     }
 };
 
@@ -664,24 +665,33 @@ public:
     , target_pose(position, orientation.normalized()) {}
     virtual double evaluate(const GoalContext &context) const {
         auto &fb = context.getLinkFrame();
-        double distance = target_pose.getPosition().distance(fb.getPosition());
-        double c_distance = std::exp(-std::pow(distance - optimal_distance, 2));
-        //double c_distance = groove_loss(distance, optimal_distance, 2,  0.1, 10, 4);
+        double distance = std::pow(target_pose.getPosition().distance(fb.getPosition()) - optimal_distance, 2);
+
         tf2::Vector3 target_normal;
         quat_mul_vec(target_pose.getOrientation(), axis, target_normal);
-        double angle = target_normal.angle(target_pose.getPosition() - fb.getPosition());
-        double c_angle = std::exp(-std::pow(angle - optimal_angle, 2));
-        //double c_angle = groove_loss(angle, optimal_angle, 2, 0.1, 10, 4);
+        tf2::Vector3 frame_to_target = (target_pose.getPosition() - fb.getPosition()).normalized();
+        double normal_cost = target_normal.distance2(frame_to_target);
+
         tf2::Vector3 sensor_normal;
         quat_mul_vec(fb.getOrientation(), axis, sensor_normal);
-        double beta = sensor_normal.angle(target_pose.getPosition() - fb.getPosition());
-        double c_center = std::exp(-std::pow(beta, 2));
-        //double c_center = groove_loss(beta, 0, 2, 0.1, 10, 4);
-        //return 10 * c_distance + c_angle + 5 * c_center;
-        //return (groove_loss(distance, optimal_distance, 2, 1, 5, 4) +
-        //        groove_loss(angle, optimal_angle, 2, 1, 5, 4) +
-        //        groove_loss(beta, 0, 2, 1, 5, 4)) + 3;
-        return 1 - (c_distance + c_angle + c_center) / 3.0;
+        double fov_cost = sensor_normal.distance2(frame_to_target);
+        return fov_cost + 5 * distance + normal_cost;
+        //return normal_cost;
+    }
+    bool isValid(const GoalContext &context) const {
+        auto &fb = context.getLinkFrame();
+        double distance = target_pose.getPosition().distance(fb.getPosition()) - optimal_distance;
+
+        tf2::Vector3 target_normal;
+        quat_mul_vec(target_pose.getOrientation(), axis, target_normal);
+        tf2::Vector3 frame_to_target = (target_pose.getPosition() - fb.getPosition()).normalized();
+        double normal_cost = target_normal.distance2(frame_to_target);
+
+        tf2::Vector3 sensor_normal;
+        quat_mul_vec(fb.getOrientation(), axis, sensor_normal);
+        double fov_cost = sensor_normal.distance2(frame_to_target);
+        bool valid = distance < 0.01 && normal_cost < 0.2 && fov_cost < 0.2; // 12 deg
+        return valid;
     }
 };
 

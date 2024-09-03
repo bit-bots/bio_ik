@@ -53,6 +53,8 @@ enum class Problem::GoalType
     Orientation,
     Pose,
     RCMGoal,
+    ScanSwampGoal,
+    ScanGoal,
 };
 
 size_t Problem::addTipLink(const moveit::core::LinkModel* link_model)
@@ -178,6 +180,14 @@ void Problem::initialize(moveit::core::RobotModelConstPtr robot_model, const mov
         if(auto* g = dynamic_cast<const RCMGoal*>(goal_info.goal))
         {
             goal_info.goal_type = GoalType::RCMGoal;
+        }
+        if(auto* g = dynamic_cast<const ScanSwampGoal*>(goal_info.goal))
+        {
+            goal_info.goal_type = GoalType::ScanSwampGoal;
+        }
+        if(auto* g = dynamic_cast<const ScanGoal*>(goal_info.goal))
+        {
+            goal_info.goal_type = GoalType::ScanGoal;
         }
 
         goal_info.goal_context.joint_model_group_ = joint_model_group;
@@ -334,7 +344,18 @@ bool Problem::checkSolutionActiveVariables(const std::vector<Frame>& tip_frames,
             if (distance > 1e-4) return false;
             continue;
         }
-
+        case GoalType::ScanSwampGoal:
+        {
+            double score = goal.goal->evaluate(goal.goal_context);
+            if (score > 0) return false;
+            continue;
+        }
+        case GoalType::ScanGoal:
+        {
+            auto *scan_goal = dynamic_cast<const ScanGoal*>(goal.goal);
+            if (!scan_goal->isValid(goal.goal_context)) return false;
+            continue;
+        }
         default:
         {
             double dmax = DBL_MAX;
