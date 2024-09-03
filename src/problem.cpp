@@ -177,7 +177,8 @@ void Problem::initialize(moveit::core::RobotModelConstPtr robot_model, const mov
             goal_info.frame.pos = g->getPosition();
             goal_info.frame.rot = g->getOrientation();
         }
-        if(auto* g = dynamic_cast<const RCMGoal*>(goal_info.goal))
+        if(dynamic_cast<const RCMGoal*>(goal_info.goal) ||
+           dynamic_cast<const RCMGoal3*>(goal_info.goal))
         {
             goal_info.goal_type = GoalType::RCMGoal;
         }
