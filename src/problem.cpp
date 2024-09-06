@@ -52,9 +52,6 @@ enum class Problem::GoalType
     Position,
     Orientation,
     Pose,
-    RCMGoal,
-    ScanSwampGoal,
-    ScanGoal,
 };
 
 size_t Problem::addTipLink(const moveit::core::LinkModel* link_model)
@@ -177,20 +174,6 @@ void Problem::initialize(moveit::core::RobotModelConstPtr robot_model, const mov
             goal_info.frame.pos = g->getPosition();
             goal_info.frame.rot = g->getOrientation();
         }
-        if(dynamic_cast<const RCMGoal*>(goal_info.goal) ||
-           dynamic_cast<const RCMGoal3*>(goal_info.goal))
-        {
-            goal_info.goal_type = GoalType::RCMGoal;
-        }
-        if(auto* g = dynamic_cast<const ScanSwampGoal*>(goal_info.goal))
-        {
-            goal_info.goal_type = GoalType::ScanSwampGoal;
-        }
-        if(auto* g = dynamic_cast<const ScanGoal*>(goal_info.goal))
-        {
-            goal_info.goal_type = GoalType::ScanGoal;
-        }
-
         goal_info.goal_context.joint_model_group_ = joint_model_group;
         goal_info.goal_context.initial_guess_ = initial_guess;
 
@@ -337,24 +320,6 @@ bool Problem::checkSolutionActiveVariables(const std::vector<Frame>& tip_frames,
                 KDL::Twist kdl_diff(fk_kdl.M.Inverse() * KDL::diff(fk_kdl.p, ik_kdl.p), fk_kdl.M.Inverse() * KDL::diff(fk_kdl.M, ik_kdl.M));
                 if(!KDL::Equal(kdl_diff, KDL::Twist::Zero(), dtwist)) return false;
             }
-            continue;
-        }
-        case GoalType::RCMGoal:
-        {
-            double distance = goal.goal->evaluate(goal.goal_context);
-            if (distance > 1e-4) return false;
-            continue;
-        }
-        case GoalType::ScanSwampGoal:
-        {
-            double score = goal.goal->evaluate(goal.goal_context);
-            if (score > 0) return false;
-            continue;
-        }
-        case GoalType::ScanGoal:
-        {
-            auto *scan_goal = dynamic_cast<const ScanGoal*>(goal.goal);
-            if (!scan_goal->isValid(goal.goal_context)) return false;
             continue;
         }
         default:

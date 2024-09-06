@@ -298,34 +298,6 @@ public:
     }
 };
 
-class RCMGoal : public Goal
-{
-    tf2::Vector3 point_;
-    mutable size_t link_count_ = 0;
-public:
-    RCMGoal(const tf2::Vector3 &point, double weight = 1.0) {
-        weight_ = weight;
-        point_ = point;
-    }
-    virtual void describe(GoalContext &context) const;
-    virtual double evaluate(const GoalContext &context) const;
-};
-
-class RCMGoal3 : public Goal
-{
-    tf2::Vector3 point_;
-    mutable size_t link_count_ = 0;
-    std::string link_name_;
-public:
-    RCMGoal3(const std::string &link_name, const tf2::Vector3 &point, double weight = 1.0) {
-        weight_ = weight;
-        point_ = point;
-        link_name_ = link_name;
-    }
-    virtual void describe(GoalContext &context) const;
-    virtual double evaluate(const GoalContext &context) const;
-};
-
 #if (MOVEIT_FCL_VERSION < FCL_VERSION_CHECK(0, 6, 0))
 class TouchGoal : public LinkGoalBase
 {
@@ -609,89 +581,6 @@ public:
         quat_mul_vec(fb.getOrientation(), axis, v);
         double f = fmax(0.0, v.dot(direction));
         return f * f;
-    }
-};
-
-static double groove_loss(double x, double t, double d, double c, double f, double g) {
-    return -exp((-pow(x - t, d)) / (2.0 * pow(c, 2))) + f * pow(x - t, g);
-}
-
-static double swamp_loss(double x, double l_bound, double u_bound, double f1, double f2, double n) {
-    double x_scaled = (2 * x - l_bound - u_bound) / (u_bound - l_bound);
-    double b = std::pow((-1 / std::log(0.05)), 1 / n);
-    return (f1 + f2 * std::pow(x_scaled, 2)) * (1 - std::exp(-std::pow(x_scaled/b, n))) - 1.0;
-}
-
-class ScanSwampGoal : public LinkGoalBase
-{
-    double optimal_distance = 0.01;
-    double wall_distance = 0.01;
-    double optimal_angle = 0;
-    double wall_angle = 0.1;
-    double beta_wall_angle = 0.1;
-    tf2::Vector3 axis{0, 0, 1};
-    Frame target_pose;
-public:
-    ScanSwampGoal(const std::string &link_name, const tf2::Vector3 &position, const tf2::Quaternion &orientation, double weight = 1.0)
-            : LinkGoalBase(link_name, weight)
-            , target_pose(position, orientation.normalized()) {}
-    virtual double evaluate(const GoalContext &context) const {
-        auto &fb = context.getLinkFrame();
-        double distance = target_pose.getPosition().distance(fb.getPosition());
-        double c_distance = swamp_loss(distance, optimal_distance - wall_distance, optimal_distance + wall_distance,  1.0, 0.1, 8);
-        tf2::Vector3 target_normal;
-        quat_mul_vec(target_pose.getOrientation(), axis, target_normal);
-        double angle = target_normal.angle(target_pose.getPosition() - fb.getPosition());
-        double c_angle = swamp_loss(angle, optimal_angle - wall_angle, optimal_angle + wall_angle, 1.0, 0.1, 8);
-        tf2::Vector3 sensor_normal;
-        quat_mul_vec(fb.getOrientation(), axis, sensor_normal);
-        double beta = sensor_normal.angle(target_pose.getPosition() - fb.getPosition());
-        double c_center = swamp_loss(beta, beta - beta_wall_angle, beta + beta_wall_angle, 1.0, 0.1, 8);
-        double loss = (c_distance + c_angle + c_center) / 3.0;
-        return loss;
-    }
-};
-
-
-class ScanGoal : public LinkGoalBase
-{
-    double optimal_distance = 0.01;
-    double optimal_angle = 0;
-    tf2::Vector3 axis{0, 0, 1};
-    Frame target_pose;
-public:
-    ScanGoal(const std::string &link_name, const tf2::Vector3 &position, const tf2::Quaternion &orientation, double weight = 1.0)
-    : LinkGoalBase(link_name, weight)
-    , target_pose(position, orientation.normalized()) {}
-    virtual double evaluate(const GoalContext &context) const {
-        auto &fb = context.getLinkFrame();
-        double distance = std::pow(target_pose.getPosition().distance(fb.getPosition()) - optimal_distance, 2);
-
-        tf2::Vector3 target_normal;
-        quat_mul_vec(target_pose.getOrientation(), axis, target_normal);
-        tf2::Vector3 frame_to_target = (target_pose.getPosition() - fb.getPosition()).normalized();
-        double normal_cost = target_normal.distance2(frame_to_target);
-
-        tf2::Vector3 sensor_normal;
-        quat_mul_vec(fb.getOrientation(), axis, sensor_normal);
-        double fov_cost = sensor_normal.distance2(frame_to_target);
-        return fov_cost + 5 * distance + normal_cost;
-        //return normal_cost;
-    }
-    bool isValid(const GoalContext &context) const {
-        auto &fb = context.getLinkFrame();
-        double distance = target_pose.getPosition().distance(fb.getPosition()) - optimal_distance;
-
-        tf2::Vector3 target_normal;
-        quat_mul_vec(target_pose.getOrientation(), axis, target_normal);
-        tf2::Vector3 frame_to_target = (target_pose.getPosition() - fb.getPosition()).normalized();
-        double normal_cost = target_normal.distance2(frame_to_target);
-
-        tf2::Vector3 sensor_normal;
-        quat_mul_vec(fb.getOrientation(), axis, sensor_normal);
-        double fov_cost = sensor_normal.distance2(frame_to_target);
-        bool valid = distance < 0.01 && normal_cost < 0.2 && fov_cost < 0.2; // 12 deg
-        return valid;
     }
 };
 
