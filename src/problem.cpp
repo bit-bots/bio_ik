@@ -132,6 +132,7 @@ void Problem::initialize(moveit::core::RobotModelConstPtr robot_model, const mov
         GoalInfo goal_info;
 
         goal_info.goal = goal;
+        goal_info.goal_context.joint_model_group_ = joint_model_group;
 
         goal->describe(goal_info.goal_context);
 
@@ -174,7 +175,6 @@ void Problem::initialize(moveit::core::RobotModelConstPtr robot_model, const mov
             goal_info.frame.pos = g->getPosition();
             goal_info.frame.rot = g->getOrientation();
         }
-        goal_info.goal_context.joint_model_group_ = joint_model_group;
         goal_info.goal_context.initial_guess_ = initial_guess;
 
         if(goal_info.goal_context.goal_secondary_)
