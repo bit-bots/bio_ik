@@ -39,8 +39,8 @@
 #include <string>
 #include <vector>
 
-#include "goal.h"
-#include "goal_types.h"
+#include <bio_ik/goal.hpp>
+#include <bio_ik/goal_types.hpp>
 
 namespace bio_ik
 {

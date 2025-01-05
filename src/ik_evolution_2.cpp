@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include "ik_base.h"
+#include "ik_base.hpp"
 
 #ifdef ENABLE_CPP_OPTLIB
 #include "cppoptlib/solver/lbfgssolver.h"

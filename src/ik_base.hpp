@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include <bio_ik/goal.h>
+#include <bio_ik/goal.hpp>
 
-#include "forward_kinematics.h"
-#include "problem.h"
-#include "utils.h"
-#include <bio_ik/robot_info.h>
+#include "forward_kinematics.hpp"
+#include "problem.hpp"
+#include "utils.hpp"
+#include <bio_ik/robot_info.hpp>
 
 #include <random>
 

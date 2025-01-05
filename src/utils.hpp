@@ -51,7 +51,7 @@
 
 //#include <boost/align/aligned_allocator.hpp>
 //#include <Eigen/Eigen>
-#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model/robot_model.hpp>
 
 namespace bio_ik
 {

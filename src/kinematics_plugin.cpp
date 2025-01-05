@@ -32,20 +32,20 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <bio_ik/goal.h>
+#include <bio_ik/goal.hpp>
 
-#include "forward_kinematics.h"
-#include "ik_base.h"
-#include "ik_parallel.h"
-#include "problem.h"
-#include "utils.h"
+#include "forward_kinematics.hpp"
+#include "ik_base.hpp"
+#include "ik_parallel.hpp"
+#include "problem.hpp"
+#include "utils.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <kdl_parser/kdl_parser.hpp>
-#include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/rdf_loader/rdf_loader.h>
+#include <moveit/kinematics_base/kinematics_base.hpp>
+#include <moveit/rdf_loader/rdf_loader.hpp>
 #include <pluginlib/class_list_macros.hpp>
 #include <srdfdom/model.h>
 #include <urdf/model.h>
@@ -54,9 +54,9 @@
 
 #include <tf2_eigen/tf2_eigen.hpp>
 //#include <moveit/common_planning_interface_objects/common_objects.h>
-#include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
+#include <moveit/kinematics_base/kinematics_base.hpp>
+#include <moveit/robot_model/robot_model.hpp>
+#include <moveit/robot_state/robot_state.hpp>
 
 #include <atomic>
 #include <mutex>
@@ -64,7 +64,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include <bio_ik/goal_types.h>
+#include <bio_ik/goal_types.hpp>
 
 using namespace bio_ik;
 

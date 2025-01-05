@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include "frame.h"
+#include <bio_ik/frame.hpp>
 
-#include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/kinematics_base/kinematics_base.hpp>
 
-#include <moveit/robot_model/joint_model_group.h>
-#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model/joint_model_group.hpp>
+#include <moveit/robot_model/robot_model.hpp>
 
 namespace bio_ik
 {
