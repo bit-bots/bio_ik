@@ -53,7 +53,7 @@
 
 
 #include <tf2_eigen/tf2_eigen.hpp>
-//#include <moveit/common_planning_interface_objects/common_objects.h>
+//#include <moveit/common_planning_interface_objects/common_objects.hpp>
 #include <moveit/kinematics_base/kinematics_base.hpp>
 #include <moveit/robot_model/robot_model.hpp>
 #include <moveit/robot_state/robot_state.hpp>
