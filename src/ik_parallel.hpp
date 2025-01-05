@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include "ik_base.h"
+#include "ik_base.hpp"
 
 #include <boost/thread/barrier.hpp>
 

@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include "utils.h"
+#include "utils.hpp"
 #include <vector>
 
-#include <bio_ik/robot_info.h>
+#include <bio_ik/robot_info.hpp>
 
 #include <geometric_shapes/shapes.h>
 
-#include <moveit/collision_detection/collision_common.h>
-#include <moveit/collision_detection_fcl/collision_common.h>
+#include <moveit/collision_detection/collision_common.hpp>
+#include <moveit/collision_detection_fcl/collision_common.hpp>
 
-#include <bio_ik/goal.h>
+#include <bio_ik/goal.hpp>
 
 namespace bio_ik
 {

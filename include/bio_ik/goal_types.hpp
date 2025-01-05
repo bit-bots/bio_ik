@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include "goal.h"
+#include <bio_ik/goal.hpp>
 
-#include "robot_info.h"
+#include <bio_ik/robot_info.hpp>
 
-#include <tf2/LinearMath/Vector3.h>
-#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Vector3.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
 
-#include <moveit/collision_detection/collision_common.h>
-#include <moveit/collision_detection_fcl/collision_common.h>
-#include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/collision_detection/collision_common.hpp>
+#include <moveit/collision_detection_fcl/collision_common.hpp>
+#include <moveit/kinematics_base/kinematics_base.hpp>
 
 #include <map>
 #include <unordered_set>

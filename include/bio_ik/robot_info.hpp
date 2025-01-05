@@ -34,11 +34,11 @@
 
 #pragma once
 
-#include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
+#include <moveit/kinematics_base/kinematics_base.hpp>
+#include <moveit/robot_model/robot_model.hpp>
+#include <moveit/robot_state/robot_state.hpp>
 
-#include <bio_ik/goal.h>
+#include <bio_ik/goal.hpp>
 
 namespace bio_ik
 {
